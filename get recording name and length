@@ -1,0 +1,29 @@
+from pathlib import Path
+import cv2
+import csv
+
+video_folder_path = Path(r"---")
+CSV_output_folder_path = Path(r"---")
+
+
+video_files = [f for f in video_folder_path.iterdir() if f.suffix.lower() in ['.mp4', '.mov', '.avi', '.mkv']]
+
+with open(CSV_output_folder_path / "video_lengths.csv", "w", newline="", encoding="utf-8") as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(["File Name", "Duration (seconds)", "Duration (mm:ss)"])  # header
+
+    for video in video_files:
+        cap = cv2.VideoCapture(str(video))
+        if not cap.isOpened():
+            print(f"Cannot open {video.name}")
+            continue
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        duration_seconds = frame_count / fps if fps else 0
+        minutes = int(duration_seconds // 60)
+        seconds = int(duration_seconds % 60)
+        writer.writerow([video.name, round(duration_seconds, 2), f"{minutes}:{seconds:02d}"])
+        cap.release()
+
+print("Video information saved to video_lengths.csv")
+
